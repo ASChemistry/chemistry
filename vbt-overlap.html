@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3D VBT Diatomic Orbital Overlap</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#0b0f18;color:#eef3f8;font-family:Arial,sans-serif}
+.app{width:min(1220px,96vw);margin:auto;padding:12px 0 18px}
+h1{margin:0;font-size:24px}.sub{margin:4px 0 10px;color:#aeb9c6;font-size:13px}
+.grid{display:grid;grid-template-columns:245px minmax(0,1fr);gap:12px}
+.panel,.card{background:#121825;border:1px solid #263244;border-radius:12px}
+.panel{padding:11px}
+label{display:block;font-size:12px;font-weight:700;margin:0 0 6px}
+select,button,input{width:100%;background:#0e1520;color:#eef3f8;border:1px solid #344257;border-radius:8px;padding:8px;font-size:13px}
+button{cursor:pointer}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.active{background:#174469;border-color:#68baff}
+.check{display:flex;gap:8px;align-items:center;margin-top:9px;font-size:12px;color:#c5d0dc}
+.check input{width:auto}
+.side{margin-top:10px;padding:9px;background:#0d1420;border:1px solid #263244;border-radius:9px}
+.k{font-size:10px;color:#91a3b7;text-transform:uppercase;letter-spacing:.05em}
+.v{font-size:16px;font-weight:700;margin:2px 0 8px}
+.legend{margin-top:10px;font-size:11px;color:#aeb9c6;line-height:1.5}
+.sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.pos{background:#4aa3ff}.neg{background:#f0b74a}.ele{background:#fff}.lp{background:#b790ff}
+.header{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:7px}
+.title{font-size:22px;font-weight:800}.meta{font-size:12px;color:#aeb9c6;margin-top:2px}
+#wrap{position:relative;width:100%;height:min(61vh,610px);min-height:400px;border:1px solid #263244;border-radius:12px;overflow:hidden;background:radial-gradient(circle,#182234,#0b1018 73%);touch-action:none}
+canvas{display:block;width:100%;height:100%}
+.hint{position:absolute;left:10px;bottom:10px;background:#0009;padding:6px 8px;border-radius:6px;font-size:11px}
+.badge{position:absolute;right:10px;top:10px;background:#0009;padding:6px 8px;border-radius:6px;font-size:11px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.card{padding:9px}.card h3{font-size:12px;margin:0 0 5px}.card p{font-size:12px;color:#bac5d1;line-height:1.4;margin:0}
+.note{margin-top:7px;font-size:11px;color:#c4ced9;line-height:1.35}
+@media(max-width:780px){.grid,.cards{grid-template-columns:1fr}#wrap{height:50vh;min-height:340px}.app{width:94vw}}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>VBT: 3D Diatomic Orbital Overlap</h1>
+<div class="sub">Rotate the complete valence-orbital picture • N₂, O₂ and F₂</div>
+
+<div class="grid">
+<aside class="panel">
+<label>Molecule</label>
+<select id="mol">
+<option value="N2">N₂</option>
+<option value="O2">O₂</option>
+<option value="F2">F₂</option>
+</select>
+
+<label style="margin-top:11px">Stage</label>
+<div class="row">
+<button id="before">Before overlap</button>
+<button id="bonded" class="active">Bonded</button>
+</div>
+
+<label style="margin-top:11px">Nuclear separation</label>
+<input id="sep" type="range" min="2.4" max="6.0" value="3.15" step="0.05">
+
+<div class="check"><input id="showLP" type="checkbox" checked><span>Show lone-pair orbitals</span></div>
+<div class="check"><input id="showE" type="checkbox" checked><span>Show electrons</span></div>
+<div class="check"><input id="showLabels" type="checkbox" checked><span>Show orbital labels</span></div>
+
+<button id="reset" style="margin-top:11px">Reset 3D view</button>
+
+<div class="side">
+<div class="k">Valence configuration</div>
+<div id="config" class="v"></div>
+<div class="k">Bond formed</div>
+<div id="bond" style="font-size:13px;line-height:1.4"></div>
+</div>
+
+<div class="legend">
+<div><span class="sw" style="background:#f2c94c"></span>2s orbital</div>
+<div><span class="sw" style="background:#ff5c8a"></span>2pₓ orbital — σ axis</div>
+<div><span class="sw" style="background:#9b5de5"></span>2pᵧ orbital — π</div>
+<div><span class="sw" style="background:#2ecc71"></span>2p_z orbital — π</div>
+<div><span class="sw ele"></span>electron</div>
+<div style="margin-top:5px">Within one p orbital, lighter/darker lobes indicate opposite wavefunction phase — not charge.</div>
+</div>
+</aside>
+
+<main>
+<div class="header">
+<div><div id="title" class="title"></div><div id="meta" class="meta"></div></div>
+</div>
+
+<div id="wrap">
+<canvas id="view"></canvas>
+<div class="badge">Internuclear axis = x-axis</div>
+<div class="hint">Drag to rotate • mouse wheel to zoom</div>
+</div>
+
+<div class="cards">
+<div class="card"><h3>Bond-forming orbitals</h3><p id="forming"></p></div>
+<div class="card"><h3>Electron picture</h3><p id="electrons"></p></div>
+</div>
+<div id="note" class="note"></div>
+</main>
+</div>
+</div>
+
+<script type="module">
+const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.169.0/+esm');
+
+const $=id=>document.getElementById(id);
+const canvas=$('view'),wrap=$('wrap');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));
+renderer.setClearColor(0,0);
+
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(38,16/9,.1,100);
+camera.position.set(0,0,9.1);
+camera.lookAt(0,0,0);
+
+scene.add(new THREE.AmbientLight(0xffffff,1.55));
+const dl=new THREE.DirectionalLight(0xffffff,2.5);dl.position.set(5,7,8);scene.add(dl);
+
+const ORBITAL_COLORS={
+  s:  0xf2c94c,
+  px: 0xff5c8a,
+  py: 0x9b5de5,
+  pz: 0x2ecc71
+};
+const ATOM=0xe9eef5, ELECTRON=0xffffff;
+const data={
+N2:{
+ atom:'N',config:'2s² 2p³',bond:'1 σ(2pₓ–2pₓ) + 2 π(2pᵧ–2pᵧ and 2p_z–2p_z)',
+ title:'N₂ — 1σ + 2π',
+ meta:'Three singly occupied 2p orbitals from each N participate.',
+ forming:'2pₓ orbitals overlap head-on along the x-axis to form σ. The 2pᵧ pair and 2p_z pair overlap sidewise in mutually perpendicular planes to form two π bonds.',
+ electrons:'Three bonding electron pairs are shown: one pair in the σ overlap and one pair for each π overlap. The filled 2s orbital on each N remains as one lone pair.',
+ note:'This is the localized VBT picture for the N≡N triple bond.',
+ pOcc:[1,1,1], lpP:[], bonds:['px','py','pz'], lonePairs:1
+},
+O2:{
+ atom:'O',config:'2s² 2p⁴',bond:'1 σ(2pₓ–2pₓ) + 1 π(2pᵧ–2pᵧ)',
+ title:'O₂ — simple VBT double-bond picture',
+ meta:'Two singly occupied 2p orbitals from each O are used for bonding.',
+ forming:'Here 2pₓ is chosen for head-on σ overlap and 2pᵧ for sidewise π overlap. The remaining filled 2p_z orbital is nonbonding in this localized picture.',
+ electrons:'Two bonding pairs are shown in the σ and π overlap regions. Each O also retains a filled 2s orbital and one filled nonbonding 2p orbital, giving two lone pairs in the Lewis/VBT picture.',
+ note:'Important: simple localized VBT predicts all electrons paired and cannot explain the observed paramagnetism of O₂. MOT is required for that.',
+ pOcc:[1,1,2], lpP:['pz'], bonds:['px','py'], lonePairs:2
+},
+F2:{
+ atom:'F',config:'2s² 2p⁵',bond:'1 σ(2pₓ–2pₓ)',
+ title:'F₂ — p–p σ bond',
+ meta:'Only one singly occupied 2p orbital on each F is required for bonding.',
+ forming:'The singly occupied 2pₓ orbital on each F overlaps head-on along the internuclear axis to make one σ bond. The filled 2pᵧ and 2p_z orbitals remain nonbonding.',
+ electrons:'One bonding electron pair is shown in the σ overlap. Each F keeps a filled 2s, 2pᵧ and 2p_z orbital: three lone pairs per atom.',
+ note:'Only one electron from each fluorine is used to form the F–F σ bond.',
+ pOcc:[1,2,2], lpP:['py','pz'], bonds:['px'], lonePairs:3
+}};
+
+let mol='N2', stage='bonded', sep=3.15, yaw=.42,pitch=.05,zoom=9.1,drag=false,lx=0,ly=0;
+let model=new THREE.Group();scene.add(model);
+
+function material(color,opacity=.42){
+ return new THREE.MeshPhongMaterial({color,transparent:true,opacity,side:THREE.DoubleSide,depthWrite:false,shininess:45});
+}
+const atomMat=new THREE.MeshStandardMaterial({color:ATOM,roughness:.42});
+const eMat=new THREE.MeshStandardMaterial({color:ELECTRON,roughness:.25,emissive:0x333333});
+const lpMat=material(ORBITAL_COLORS.s,.28);
+
+function sphere(r,mat){
+ return new THREE.Mesh(new THREE.SphereGeometry(r,28,20),mat);
+}
+
+function lobe(center,axis,color,sign=1,scale=1,nonbond=false){
+ const g=new THREE.SphereGeometry(.52*scale,32,22);
+ g.scale(1.7,1,1);
+
+ // Same orbital = same hue. Opposite phase is shown by a lighter/darker lobe.
+ const phaseColor = new THREE.Color(color);
+ if(sign < 0) phaseColor.multiplyScalar(0.58);
+ else phaseColor.offsetHSL(0,0,0.08);
+
+ const mesh=new THREE.Mesh(
+   g,
+   material(phaseColor.getHex(), nonbond ? .30 : .46)
+ );
+ const a=new THREE.Vector3(...axis).normalize();
+ mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0),a);
+ mesh.position.copy(center);
+ return mesh;
+}
+
+function addP(group,origin,axis,name,occupied,flip=false,nonbond=false){
+ const a=new THREE.Vector3(...axis).normalize();
+ const c1=origin.clone().add(a.clone().multiplyScalar(.67));
+ const c2=origin.clone().add(a.clone().multiplyScalar(-.67));
+
+ const key = name.includes('ₓ') ? 'px' : (name.includes('ᵧ') ? 'py' : 'pz');
+ const color = ORBITAL_COLORS[key];
+
+ group.add(lobe(c1,axis,color,flip?-1:1,1,nonbond));
+ group.add(lobe(c2,axis,color,flip?1:-1,1,nonbond));
+
+ if($('showE').checked && occupied===2){
+   addElectronPair(group,origin.clone().add(a.clone().multiplyScalar(nonbond?1.0:.9)),a);
+ }
+ if($('showLabels').checked){
+   addLabel(group,origin.clone().add(a.clone().multiplyScalar(1.55)),name);
+ }
+}
+
+function addS(group,origin,showPair=true){
+ if(!$('showLP').checked)return;
+ const s=sphere(.62,material(ORBITAL_COLORS.s,.34));s.position.copy(origin);group.add(s);
+ if($('showE').checked && showPair)addElectronPair(group,origin.clone().add(new THREE.Vector3(0,.72,0)),new THREE.Vector3(1,0,0));
+ if($('showLabels').checked)addLabel(group,origin.clone().add(new THREE.Vector3(0,-.92,0)),'2s lone pair');
+}
+
+function addElectron(group,pos){
+ const e=sphere(.075,eMat);e.position.copy(pos);group.add(e);
+}
+function addElectronPair(group,pos,axis){
+ const n=new THREE.Vector3(...(axis.toArray?axis.toArray():axis)).normalize();
+ let side=new THREE.Vector3(0,1,0);
+ if(Math.abs(n.dot(side))>.9)side=new THREE.Vector3(0,0,1);
+ side.cross(n).normalize().multiplyScalar(.105);
+ addElectron(group,pos.clone().add(side));addElectron(group,pos.clone().sub(side));
+}
+
+function addLabel(group,pos,text){
+ const c=document.createElement('canvas');c.width=256;c.height=64;
+ const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
+ ctx.font='bold 30px Arial';ctx.fillStyle='#eef3f8';ctx.textAlign='center';ctx.fillText(text,128,40);
+ const tex=new THREE.CanvasTexture(c);
+ const m=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false});
+ const s=new THREE.Sprite(m);s.scale.set(1.45,.36,1);s.position.copy(pos);group.add(s);
+}
+
+function nucleus(group,x,label){
+ const m=sphere(.25,atomMat);m.position.set(x,0,0);group.add(m);
+ if($('showLabels').checked)addLabel(group,new THREE.Vector3(x,-1.8,0),label);
+}
+
+function addAxis(group){
+ const mat=new THREE.LineBasicMaterial({color:0x718198,transparent:true,opacity:.55});
+ const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-4,0,0),new THREE.Vector3(4,0,0)]);
+ group.add(new THREE.Line(geo,mat));
+}
+
+function overlapPair(group,type,L,R){
+ if(!$('showE').checked)return;
+ if(type==='px'){
+   addElectronPair(group,new THREE.Vector3(0,0,0),new THREE.Vector3(1,0,0));
+   if($('showLabels').checked)addLabel(group,new THREE.Vector3(0,-.55,0),'σ pair');
+ }else if(type==='py'){
+   // schematic paired electrons within the shared π cloud
+   addElectron(group,new THREE.Vector3(-.09,.88,0));
+   addElectron(group,new THREE.Vector3(.09,.88,0));
+   if($('showLabels').checked)addLabel(group,new THREE.Vector3(0,1.45,0),'πᵧ pair');
+ }else if(type==='pz'){
+   addElectron(group,new THREE.Vector3(0,-.08,.88));
+   addElectron(group,new THREE.Vector3(0,.08,.88));
+   if($('showLabels').checked)addLabel(group,new THREE.Vector3(0,0,1.48),'π_z pair');
+ }
+}
+
+function build(){
+ scene.remove(model);model=new THREE.Group();scene.add(model);
+ const d=data[mol];
+ addAxis(model);
+ const actualSep=stage==='before'?5.3:sep;
+ const L=-actualSep/2,R=actualSep/2;
+ nucleus(model,L,d.atom);nucleus(model,R,d.atom);
+
+ const axes={px:[1,0,0],py:[0,1,0],pz:[0,0,1]};
+ const names={px:'2pₓ',py:'2pᵧ',pz:'2p_z'};
+
+ ['px','py','pz'].forEach((p,i)=>{
+   const isBond=d.bonds.includes(p);
+   const nonbond=d.lpP.includes(p);
+   const showOrb=isBond || ($('showLP').checked && nonbond);
+   if(!showOrb)return;
+
+   let occ=d.pOcc[i];
+   // In bonded stage, bonding orbitals display the shared bonding pair, not isolated atomic electrons.
+   addP(model,new THREE.Vector3(L,0,0),axes[p],names[p],stage==='before'?occ:(nonbond?2:0),false,nonbond);
+   // Flip right px phase so inward lobes have matching phase for constructive overlap.
+   const flipRight = p==='px';
+   addP(model,new THREE.Vector3(R,0,0),axes[p],names[p],stage==='before'?occ:(nonbond?2:0),flipRight,nonbond);
+
+   if(stage==='before' && $('showE').checked && occ===1){
+      const a=new THREE.Vector3(...axes[p]).normalize();
+      addElectron(model,new THREE.Vector3(L,0,0).add(a.clone().multiplyScalar(.9)));
+      addElectron(model,new THREE.Vector3(R,0,0).add(a.clone().multiplyScalar(-.9)));
+   }
+ });
+
+ // 2s lone pair always exists for N,O,F
+ addS(model,new THREE.Vector3(L,0,0),true);
+ addS(model,new THREE.Vector3(R,0,0),true);
+
+ if(stage==='bonded'){
+   d.bonds.forEach(b=>overlapPair(model,b,L,R));
+ }
+
+ model.rotation.order='YXZ';model.rotation.y=yaw;model.rotation.x=pitch;
+ updateText();
+}
+
+function updateText(){
+ const d=data[mol];
+ $('config').textContent=d.config;$('bond').textContent=d.bond;
+ $('title').textContent=d.title;$('meta').textContent=d.meta;
+ $('forming').textContent=d.forming;$('electrons').textContent=d.electrons;$('note').textContent=d.note;
+}
+
+function resize(){
+ const r=wrap.getBoundingClientRect();
+ renderer.setSize(r.width,r.height,false);
+ camera.aspect=r.width/r.height;camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(wrap);
+
+$('mol').addEventListener('change',e=>{mol=e.target.value;build()});
+$('before').addEventListener('click',()=>{stage='before';$('before').classList.add('active');$('bonded').classList.remove('active');$('sep').disabled=true;build()});
+$('bonded').addEventListener('click',()=>{stage='bonded';$('bonded').classList.add('active');$('before').classList.remove('active');$('sep').disabled=false;build()});
+$('sep').addEventListener('input',e=>{sep=+e.target.value;build()});
+['showLP','showE','showLabels'].forEach(id=>$(id).addEventListener('change',build));
+$('reset').addEventListener('click',()=>{yaw=.42;pitch=.05;zoom=9.1;camera.position.set(0,0,zoom);camera.lookAt(0,0,0);build()});
+
+wrap.addEventListener('pointerdown',e=>{drag=true;lx=e.clientX;ly=e.clientY;wrap.setPointerCapture(e.pointerId)});
+wrap.addEventListener('pointermove',e=>{
+ if(!drag)return;
+ const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;
+ yaw+=dx*.009;pitch=Math.max(-1.45,Math.min(1.45,pitch+dy*.009));
+ model.rotation.y=yaw;model.rotation.x=pitch;
+});
+wrap.addEventListener('pointerup',()=>drag=false);
+wrap.addEventListener('pointercancel',()=>drag=false);
+wrap.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(6.2,Math.min(13,zoom+e.deltaY*.008));camera.position.set(0,0,zoom);camera.lookAt(0,0,0)},{passive:false});
+
+function loop(){renderer.render(scene,camera);requestAnimationFrame(loop)}
+$('sep').disabled=false;build();resize();loop();
+</script>
+</body>
+</html>
