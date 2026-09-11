@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MOT Visualizer | Chemistry with AS Sir</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#07101b;--panel:#101c2c;--panel2:#0c1724;--line:#29415c;
+  --text:#eef5ff;--muted:#9fb1c4;--accent:#63b9ff;--good:#66d49b;
+  --warn:#ffd166;--bad:#ff7b88
+}
+body{margin:0;font-family:Arial,sans-serif;color:var(--text);
+  background:radial-gradient(circle at top,#162c45 0,#0a1421 48%,#060b12 100%)}
+.home-btn{
+  position:fixed;top:14px;left:14px;z-index:50;display:inline-flex;align-items:center;
+  padding:9px 13px;border-radius:10px;background:#14243a;border:1px solid #35516f;
+  color:white;text-decoration:none;font-weight:700;font-size:13px
+}
+.wrap{width:min(1450px,98vw);margin:auto;padding:24px 0 34px}
+header{text-align:center;margin-bottom:18px}
+header h1{margin:0;font-size:clamp(28px,4vw,45px)}
+header p{margin:7px 0 0;color:var(--muted)}
+.layout{display:grid;grid-template-columns:250px minmax(700px,1fr) 285px;gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px}
+h3{margin:0 0 12px;font-size:16px}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
+select,button{font:inherit}
+select,.btn{
+  width:100%;border:1px solid #35516f;background:#0a1421;color:white;border-radius:10px;
+  padding:11px 12px
+}
+.btn{cursor:pointer;font-weight:700;margin-top:8px}
+.btn:hover{border-color:var(--accent);background:#10263c}
+.toggle{display:flex;gap:8px;margin-top:8px}
+.toggle button{flex:1;padding:9px 8px;border-radius:9px;border:1px solid #35516f;background:#0a1421;color:#dbe9f7;cursor:pointer}
+.toggle button.active{border-color:var(--accent);background:#113657}
+.stat{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #253a50;padding:9px 0;font-size:13px}
+.stat:first-of-type{border-top:0}
+.stat span{color:var(--muted)} .stat b{text-align:right}
+.good{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+#diagramPanel{padding:10px;min-width:0}
+#diagram{width:100%;min-height:650px;display:block;background:linear-gradient(#0b1725,#09131f);border-radius:12px}
+.level{stroke:#c9d8e8;stroke-width:3;stroke-linecap:round}
+.moBond{stroke:#72d3a0}.moAnti{stroke:#ff8e98}
+.conn{stroke:#52708e;stroke-width:1.4;opacity:.42}
+.electron{stroke:#fff;stroke-width:2.2;stroke-linecap:round}
+.electronHead{fill:#fff}
+.moLabel{fill:#dce9f5;font:600 15px Arial,sans-serif}
+.sideLabel{fill:#93a9bd;font:600 13px Arial,sans-serif}
+.energyLabel{fill:#8097ab;font:12px Arial,sans-serif}
+.orderTag{display:inline-block;padding:6px 9px;background:#0d3151;color:#9ad6ff;border-radius:999px;font-size:11px;font-weight:700}
+.note{font-size:12px;line-height:1.5;color:var(--muted)}
+.eq{background:#09131f;border:1px solid #253c54;border-radius:10px;padding:10px;margin-top:9px;
+  font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted);margin:8px 4px 0}
+.sw{width:19px;height:3px;display:inline-block;vertical-align:middle;margin-right:4px;border-radius:3px}
+.small{font-size:12px;color:var(--muted);line-height:1.5}
+#fillStatus{margin-top:8px;font-size:12px;color:#cfe3f6;min-height:18px}
+@media(max-width:1120px){
+  .layout{grid-template-columns:220px 1fr 240px}
+  #diagram{min-height:610px}
+}
+@media(max-width:900px){
+  .home-btn{position:static;margin:10px 0 0 10px;width:max-content}
+  .wrap{padding-top:10px}
+  .layout{grid-template-columns:1fr}
+  #diagram{min-height:560px}
+  header{padding:0 12px}
+}
+@media(max-width:520px){
+  .wrap{width:96vw}
+  #diagram{min-height:520px}
+  .panel{padding:12px}
+}
+</style>
+</head>
+<body>
+<a class="home-btn" href="index.html">← Home</a>
+<div class="wrap">
+<header>
+<h1>Molecular Orbital Theory Visualizer</h1>
+<p>Fill molecular orbitals • calculate bond order • predict magnetism • compare B₂–N₂ and O₂–Ne₂ energy ordering</p>
+</header>
+
+<div class="layout">
+  <aside class="panel">
+    <h3>Select species</h3>
+    <label for="species">Diatomic species</label>
+    <select id="species">
+      <option value="B2">B₂</option>
+      <option value="C2">C₂</option>
+      <option value="N2" selected>N₂</option>
+      <option value="N2p">N₂⁺</option>
+      <option value="O2">O₂</option>
+      <option value="O2p">O₂⁺</option>
+      <option value="O2m">O₂⁻</option>
+      <option value="O2mm">O₂²⁻</option>
+      <option value="F2">F₂</option>
+      <option value="Ne2">Ne₂</option>
+    </select>
+
+    <label>Display</label>
+    <div class="toggle">
+      <button id="showConnections" class="active" type="button">AO → MO</button>
+      <button id="showElectrons" class="active" type="button">Electrons</button>
+    </div>
+
+    <button class="btn" id="animateBtn" type="button">▶ Animate electron filling</button>
+    <button class="btn" id="resetBtn" type="button">Reset</button>
+
+    <div style="margin-top:15px" class="stat"><span>Valence electrons</span><b id="valence"></b></div>
+    <div class="stat"><span>Bonding electrons (Nb)</span><b id="nb"></b></div>
+    <div class="stat"><span>Antibonding electrons (Na)</span><b id="na"></b></div>
+    <div class="stat"><span>Bond order</span><b id="bo" class="good"></b></div>
+    <div class="stat"><span>Unpaired electrons</span><b id="unpaired"></b></div>
+    <div class="stat"><span>Magnetic nature</span><b id="magnetic"></b></div>
+  </aside>
+
+  <main class="panel" id="diagramPanel">
+    <svg id="diagram" viewBox="0 0 900 650" role="img" aria-label="Molecular orbital energy level diagram"></svg>
+    <div class="legend">
+      <span><i class="sw" style="background:#72d3a0"></i>bonding MO</span>
+      <span><i class="sw" style="background:#ff8e98"></i>antibonding MO</span>
+      <span><i class="sw" style="background:#c9d8e8"></i>atomic orbital</span>
+    </div>
+  </main>
+
+  <aside class="panel">
+    <h3 id="speciesTitle">N₂</h3>
+    <span class="orderTag" id="orderTag"></span>
+
+    <div class="eq" id="configuration"></div>
+    <div class="eq">
+      Bond order = (Nb − Na) / 2<br>
+      <span id="boCalc"></span>
+    </div>
+
+    <h3 style="margin-top:16px">Why does the order change?</h3>
+    <div class="note" id="mixingNote"></div>
+
+    <h3 style="margin-top:16px">Key observation</h3>
+    <div class="note" id="observation"></div>
+
+    <div id="fillStatus"></div>
+  </aside>
+</div>
+</div>
+
+<script>
+(()=>{
+const root=document;
+const SVGNS="http://www.w3.org/2000/svg";
+
+const species={
+ B2:{label:"B₂",e:6,order:"lowZ",note:"B₂ has two unpaired electrons in the two degenerate π2p orbitals, so it is paramagnetic."},
+ C2:{label:"C₂",e:8,order:"lowZ",note:"C₂ fills both degenerate π2p orbitals completely. Bond order = 2 and it is diamagnetic."},
+ N2:{label:"N₂",e:10,order:"lowZ",note:"N₂ has bond order 3. In the B₂/C₂/N₂ ordering, π2p lies below σ2p because s–p mixing is significant."},
+ N2p:{label:"N₂⁺",e:9,order:"lowZ",note:"Removing one electron from N₂ removes it from σ2p, decreasing bond order from 3 to 2.5 and creating one unpaired electron."},
+ O2:{label:"O₂",e:12,order:"highZ",note:"O₂ has two unpaired electrons in separate π*2p orbitals. MOT therefore explains its observed paramagnetism."},
+ O2p:{label:"O₂⁺",e:11,order:"highZ",note:"O₂⁺ has one electron removed from π*2p, so bond order increases from 2 to 2.5."},
+ O2m:{label:"O₂⁻",e:13,order:"highZ",note:"O₂⁻ has one extra electron in π*2p. Bond order decreases to 1.5 and one unpaired electron remains."},
+ O2mm:{label:"O₂²⁻",e:14,order:"highZ",note:"O₂²⁻ has both π*2p orbitals fully filled. Bond order = 1 and all electrons are paired."},
+ F2:{label:"F₂",e:14,order:"highZ",note:"F₂ has bond order 1 and all electrons paired, so it is diamagnetic."},
+ Ne2:{label:"Ne₂",e:16,order:"highZ",note:"For Ne₂, bonding and antibonding electrons are equal. Bond order = 0, so a normal stable Ne₂ molecule is not expected."}
+};
+
+function levelsFor(order){
+ const common=[
+  {id:"s2",label:"σ2s",deg:1,bonding:true},
+  {id:"s2a",label:"σ*2s",deg:1,bonding:false}
+ ];
+ const low=[
+  {id:"pipy",label:"π2p",deg:2,bonding:true},
+  {id:"sigp",label:"σ2p",deg:1,bonding:true},
+  {id:"pipa",label:"π*2p",deg:2,bonding:false},
+  {id:"sigpa",label:"σ*2p",deg:1,bonding:false}
+ ];
+ const high=[
+  {id:"sigp",label:"σ2p",deg:1,bonding:true},
+  {id:"pipy",label:"π2p",deg:2,bonding:true},
+  {id:"pipa",label:"π*2p",deg:2,bonding:false},
+  {id:"sigpa",label:"σ*2p",deg:1,bonding:false}
+ ];
+ return common.concat(order==="lowZ"?low:high);
+}
+
+function fillOrbitals(levels,total){
+ let remaining=total, config=[], unpaired=0, nb=0, na=0;
+ const filled=[];
+ for(const L of levels){
+   const boxes=new Array(L.deg).fill(0);
+   // Hund: first one electron per degenerate orbital
+   for(let i=0;i<L.deg && remaining>0;i++){boxes[i]=1;remaining--;}
+   // then pair
+   for(let i=0;i<L.deg && remaining>0;i++){boxes[i]=2;remaining--;}
+   const n=boxes.reduce((a,b)=>a+b,0);
+   if(n) config.push({label:L.label,n});
+   unpaired+=boxes.filter(x=>x===1).length;
+   if(L.bonding) nb+=n; else na+=n;
+   filled.push({...L,boxes,n});
+ }
+ return {filled,config,unpaired,nb,na,bo:(nb-na)/2};
+}
+
+function el(name,attrs={},text=""){
+ const x=document.createElementNS(SVGNS,name);
+ for(const [k,v] of Object.entries(attrs))x.setAttribute(k,v);
+ if(text)x.textContent=text;
+ return x;
+}
+
+function drawElectron(svg,x,y,down=false){
+ const g=el("g");
+ if(!down){
+   g.appendChild(el("line",{x1:x,y1:y+8,x2:x,y2:y-8,class:"electron"}));
+   g.appendChild(el("polygon",{points:`${x-3},${y-6} ${x+3},${y-6} ${x},${y-12}`,class:"electronHead"}));
+ }else{
+   g.appendChild(el("line",{x1:x,y1:y-8,x2:x,y2:y+8,class:"electron"}));
+   g.appendChild(el("polygon",{points:`${x-3},${y+6} ${x+3},${y+6} ${x},${y+12}`,class:"electronHead"}));
+ }
+ svg.appendChild(g); return g;
+}
+
+let reveal=999, animTimer=null;
+let showConnections=true, showElectrons=true;
+
+function render(){
+ const key=root.getElementById("species").value;
+ const d=species[key];
+ const levels=levelsFor(d.order);
+ const calc=fillOrbitals(levels,d.e);
+ const svg=root.getElementById("diagram");
+ svg.innerHTML="";
+
+ // energy axis
+ svg.appendChild(el("line",{x1:45,y1:575,x2:45,y2:75,stroke:"#647b91","stroke-width":"2"}));
+ svg.appendChild(el("polygon",{points:"39,83 51,83 45,68",fill:"#647b91"}));
+ svg.appendChild(el("text",{x:15,y:330,transform:"rotate(-90 15 330)",class:"energyLabel"},"Energy"));
+
+ // headings
+ svg.appendChild(el("text",{x:120,y:40,class:"sideLabel","text-anchor":"middle"},"Atom A"));
+ svg.appendChild(el("text",{x:450,y:40,class:"sideLabel","text-anchor":"middle"},"Molecular orbitals"));
+ svg.appendChild(el("text",{x:780,y:40,class:"sideLabel","text-anchor":"middle"},"Atom B"));
+
+ // AO energies
+ const aoY={s:530,p:210};
+ const sideXs=[120,780];
+ sideXs.forEach(sx=>{
+   svg.appendChild(el("line",{x1:sx-42,y1:aoY.s,x2:sx+42,y2:aoY.s,class:"level"}));
+   svg.appendChild(el("text",{x:sx,y:aoY.s+25,class:"sideLabel","text-anchor":"middle"},"2s"));
+   [-35,0,35].forEach(dx=>svg.appendChild(el("line",{x1:sx+dx-14,y1:aoY.p,x2:sx+dx+14,y2:aoY.p,class:"level"})));
+   svg.appendChild(el("text",{x:sx,y:aoY.p-18,class:"sideLabel","text-anchor":"middle"},"2p"));
+ });
+
+ // level vertical layout depends on order
+ const yMap = d.order==="lowZ" ?
+   {s2:565,s2a:475,pipy:345,sigp:280,pipa:155,sigpa:90} :
+   {s2:565,s2a:475,sigp:355,pipy:295,pipa:155,sigpa:90};
+
+ const drawn=[];
+ calc.filled.forEach((L,li)=>{
+   const y=yMap[L.id];
+   const center=450;
+   const gap=42;
+   const xs=L.deg===1?[center]:[center-gap/2,center+gap/2];
+
+   // AO-MO correlation lines
+   if(showConnections){
+     const sourceY=L.id.startsWith("s2")?aoY.s:aoY.p;
+     xs.forEach(x=>{
+       svg.appendChild(el("line",{x1:162,y1:sourceY,x2:x-30,y2:y,class:"conn"}));
+       svg.appendChild(el("line",{x1:738,y1:sourceY,x2:x+30,y2:y,class:"conn"}));
+     });
+   }
+
+   xs.forEach((x,bi)=>{
+     svg.appendChild(el("line",{x1:x-28,y1:y,x2:x+28,y2:y,class:`level ${L.bonding?"moBond":"moAnti"}`}));
+     if(showElectrons){
+       const n=L.boxes[bi];
+       const orbitalIndex=drawn.length;
+       if(n>=1 && orbitalIndex<reveal) drawElectron(svg,x-7,y-13,false);
+       if(n>=2 && orbitalIndex<reveal) drawElectron(svg,x+7,y-13,true);
+       drawn.push({n});
+     }else drawn.push({n:L.boxes[bi]});
+   });
+   svg.appendChild(el("text",{x:520,y:y+5,class:"moLabel"},L.label));
+ });
+
+ // s-p mixing visual cue
+ if(d.order==="lowZ"){
+   svg.appendChild(el("text",{x:450,y:410,class:"energyLabel","text-anchor":"middle"},"stronger s–p mixing"));
+ }else{
+   svg.appendChild(el("text",{x:450,y:410,class:"energyLabel","text-anchor":"middle"},"weaker s–p mixing"));
+ }
+
+ // UI text
+ root.getElementById("speciesTitle").textContent=d.label;
+ root.getElementById("valence").textContent=d.e;
+ root.getElementById("nb").textContent=calc.nb;
+ root.getElementById("na").textContent=calc.na;
+ root.getElementById("bo").textContent=calc.bo.toFixed(1).replace(".0","");
+ root.getElementById("unpaired").textContent=calc.unpaired;
+ const mag=calc.unpaired>0?"Paramagnetic":"Diamagnetic";
+ root.getElementById("magnetic").textContent=mag;
+ root.getElementById("magnetic").className=calc.unpaired>0?"warn":"good";
+ root.getElementById("orderTag").textContent=d.order==="lowZ"?"B₂ / C₂ / N₂ order":"O₂ / F₂ / Ne₂ order";
+
+ const conf=calc.config.map(x=>`${x.label}${x.n>1?"^"+x.n:"^1"}`).join("  ");
+ root.getElementById("configuration").textContent="MO configuration: "+conf;
+ root.getElementById("boCalc").textContent=`= (${calc.nb} − ${calc.na}) / 2 = ${calc.bo.toFixed(1).replace(".0","")}`;
+ root.getElementById("mixingNote").innerHTML=d.order==="lowZ"
+   ? "<b>B, C and N:</b> the 2s and 2p energy gap is smaller, so s–p mixing is stronger. This pushes σ2p upward relative to π2p; therefore <b>π2p lies below σ2p</b>."
+   : "<b>O, F and Ne:</b> the 2s–2p energy gap is larger, so s–p mixing is weaker. The usual order is restored: <b>σ2p lies below π2p</b>.";
+ root.getElementById("observation").textContent=d.note;
+}
+
+function startAnimation(){
+ clearInterval(animTimer);
+ reveal=0;render();
+ const key=root.getElementById("species").value;
+ const d=species[key];
+ const calc=fillOrbitals(levelsFor(d.order),d.e);
+ const totalBoxes=calc.filled.reduce((s,L)=>s+L.deg,0);
+ root.getElementById("fillStatus").textContent="Filling electrons according to Aufbau, Pauli and Hund's rule…";
+ animTimer=setInterval(()=>{
+   reveal++;
+   render();
+   if(reveal>=totalBoxes){
+     clearInterval(animTimer);animTimer=null;
+     root.getElementById("fillStatus").textContent="Electron filling complete.";
+   }
+ },450);
+}
+
+root.getElementById("species").addEventListener("change",()=>{reveal=999;render();});
+root.getElementById("showConnections").addEventListener("click",e=>{
+ showConnections=!showConnections;e.currentTarget.classList.toggle("active",showConnections);render();
+});
+root.getElementById("showElectrons").addEventListener("click",e=>{
+ showElectrons=!showElectrons;e.currentTarget.classList.toggle("active",showElectrons);render();
+});
+root.getElementById("animateBtn").addEventListener("click",startAnimation);
+root.getElementById("resetBtn").addEventListener("click",()=>{
+ clearInterval(animTimer);animTimer=null;reveal=999;showConnections=true;showElectrons=true;
+ root.getElementById("showConnections").classList.add("active");
+ root.getElementById("showElectrons").classList.add("active");
+ root.getElementById("fillStatus").textContent="";
+ render();
+});
+render();
+})();
+</script>
+</body>
+</html>

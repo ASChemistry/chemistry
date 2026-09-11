@@ -6,28 +6,24 @@
 <title>Chemistry with AS Sir</title>
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;min-height:100vh;font-family:Arial,sans-serif;color:#eef5ff;
- background:radial-gradient(circle at top,#172b43 0,#0b1320 48%,#070b12 100%);
- display:flex;align-items:center;justify-content:center
-}
-main{width:min(940px,92vw);padding:42px 0}
+body{margin:0;min-height:100vh;font-family:Arial,sans-serif;color:#eef5ff;
+background:radial-gradient(circle at top,#172b43 0,#0b1320 48%,#070b12 100%);
+display:flex;align-items:center;justify-content:center}
+main{width:min(1080px,92vw);padding:42px 0}
 header{text-align:center;margin-bottom:34px}
 h1{font-size:clamp(30px,5vw,52px);margin:0 0 8px}
 header p{margin:0;color:#aebdcd;font-size:16px}
 .section-title{font-size:13px;text-transform:uppercase;letter-spacing:.13em;color:#8fa4b8;margin:0 0 12px}
-.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.tool{
- display:block;text-decoration:none;color:inherit;padding:26px;border-radius:18px;
- background:#111c2b;border:1px solid #29415c;transition:.18s transform,.18s border-color,.18s background
-}
+.tools{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.tool{display:block;text-decoration:none;color:inherit;padding:26px;border-radius:18px;
+background:#111c2b;border:1px solid #29415c;transition:.18s transform,.18s border-color,.18s background}
 .tool:hover{transform:translateY(-3px);border-color:#63b9ff;background:#14243a}
 .icon{font-size:34px;margin-bottom:14px}
 .tool h2{margin:0 0 8px;font-size:23px}
 .tool p{margin:0;color:#aebdcd;line-height:1.5;font-size:14px}
 .tag{display:inline-block;margin-top:18px;padding:6px 9px;border-radius:999px;background:#0d3151;color:#8ed0ff;font-size:11px;font-weight:700}
 footer{text-align:center;color:#72869a;font-size:12px;margin-top:30px}
-@media(max-width:900px){.tools{grid-template-columns:1fr 1fr}}@media(max-width:650px){.tools{grid-template-columns:1fr}main{padding:25px 0}.tool{padding:21px}}
+@media(max-width:700px){.tools{grid-template-columns:1fr}main{padding:25px 0}.tool{padding:21px}}
 </style>
 </head>
 <body>
@@ -36,33 +32,25 @@ footer{text-align:center;color:#72869a;font-size:12px;margin-top:30px}
 <h1>Chemistry with AS Sir</h1>
 <p>Interactive Chemistry Visualizers for JEE &amp; NEET</p>
 </header>
-
 <div class="section-title">Chemical Bonding</div>
-
 <section class="tools">
-<a class="tool" href="vsepr.html">
-<div class="icon">⚛️</div>
-<h2>Hybridisation &amp; VSEPR</h2>
-<p>Explore electronic geometry, molecular geometry, lone-pair positions, bond angles and steric number using interactive 3D models.</p>
-<span class="tag">OPEN 3D VIEWER →</span>
-</a>
+<a class="tool" href="vsepr.html"><div class="icon">⚛️</div><h2>Hybridisation &amp; VSEPR</h2>
+<p>Explore molecular geometry, lone-pair positions, bond angles and steric number with interactive 3D models.</p>
+<span class="tag">OPEN 3D VIEWER →</span></a>
 
-<a class="tool" href="vbt-overlap.html">
-<div class="icon">🔬</div>
-<h2>Valence Bond Theory</h2>
-<p>Visualize 3D orbital overlap in diatomic molecules, including σ and π bonding in N₂, O₂ and F₂.</p>
-<span class="tag">OPEN ORBITAL VIEWER →</span>
-</a>
+<a class="tool" href="vbt-overlap.html"><div class="icon">🔬</div><h2>Valence Bond Theory</h2>
+<p>Visualize σ and π orbital overlap in N₂, O₂ and F₂ using interactive orbital models.</p>
+<span class="tag">OPEN ORBITAL VIEWER →</span></a>
 
-<a class="tool" href="dipole-visualizer.html">
-<div class="icon">↗️</div>
-<h2>Dipole Moment</h2>
-<p>Visualize bond-dipole arrows, electronegativity differences, bond angles and the calculated 3D resultant vector.</p>
-<span class="tag">OPEN DIPOLE VIEWER →</span>
-</a>
+<a class="tool" href="dipole-visualizer.html"><div class="icon">↗️</div><h2>Dipole Moment</h2>
+<p>See individual bond dipoles, electronegativity differences, bond angles and their resultant vector.</p>
+<span class="tag">OPEN DIPOLE VIEWER →</span></a>
+
+<a class="tool" href="mot.html"><div class="icon">📊</div><h2>Molecular Orbital Theory</h2>
+<p>Fill molecular orbitals, compare energy ordering, calculate bond order and predict magnetic behaviour.</p>
+<span class="tag">OPEN MOT VIEWER →</span></a>
 </section>
-
-<footer>Interactive chemistry tools for JEE &amp; NEET.</footer>
+<footer>Interactive chemistry visualizers for JEE &amp; NEET.</footer>
 </main>
 </body>
 </html>
