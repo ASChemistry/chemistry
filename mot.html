@@ -114,6 +114,7 @@ select,.btn{
     <div class="stat"><span>Bonding electrons (Nb)</span><b id="nb"></b></div>
     <div class="stat"><span>Antibonding electrons (Na)</span><b id="na"></b></div>
     <div class="stat"><span>Bond order</span><b id="bo" class="good"></b></div>
+<div class="stat"><span>Bond character</span><b id="bondCharacter"></b></div>
     <div class="stat"><span>Unpaired electrons</span><b id="unpaired"></b></div>
     <div class="stat"><span>Magnetic nature</span><b id="magnetic"></b></div>
   </aside>
@@ -154,16 +155,16 @@ const root=document;
 const SVGNS="http://www.w3.org/2000/svg";
 
 const species={
- B2:{label:"B₂",e:6,order:"lowZ",note:"B₂ has two unpaired electrons in the two degenerate π2p orbitals, so it is paramagnetic."},
- C2:{label:"C₂",e:8,order:"lowZ",note:"C₂ fills both degenerate π2p orbitals completely. Bond order = 2 and it is diamagnetic."},
- N2:{label:"N₂",e:10,order:"lowZ",note:"N₂ has bond order 3. In the B₂/C₂/N₂ ordering, π2p lies below σ2p because s–p mixing is significant."},
- N2p:{label:"N₂⁺",e:9,order:"lowZ",note:"Removing one electron from N₂ removes it from σ2p, decreasing bond order from 3 to 2.5 and creating one unpaired electron."},
- O2:{label:"O₂",e:12,order:"highZ",note:"O₂ has two unpaired electrons in separate π*2p orbitals. MOT therefore explains its observed paramagnetism."},
- O2p:{label:"O₂⁺",e:11,order:"highZ",note:"O₂⁺ has one electron removed from π*2p, so bond order increases from 2 to 2.5."},
- O2m:{label:"O₂⁻",e:13,order:"highZ",note:"O₂⁻ has one extra electron in π*2p. Bond order decreases to 1.5 and one unpaired electron remains."},
- O2mm:{label:"O₂²⁻",e:14,order:"highZ",note:"O₂²⁻ has both π*2p orbitals fully filled. Bond order = 1 and all electrons are paired."},
- F2:{label:"F₂",e:14,order:"highZ",note:"F₂ has bond order 1 and all electrons paired, so it is diamagnetic."},
- Ne2:{label:"Ne₂",e:16,order:"highZ",note:"For Ne₂, bonding and antibonding electrons are equal. Bond order = 0, so a normal stable Ne₂ molecule is not expected."}
+ B2:{label:"B₂",e:6,order:"lowZ",bondCharacter:"π bond order = 1",note:"B₂ has two unpaired electrons in the two degenerate π2p orbitals. The net bond order is 1 and it arises from π2p bonding; there is no net σ bond from 2s because σ2s and σ*2s cancel."},
+ C2:{label:"C₂",e:8,order:"lowZ",bondCharacter:"2 π bonds",note:"C₂ has configuration (σ2s)²(σ*2s)²(π2p)⁴. The σ2s and σ*2s contributions cancel, while the two degenerate π2p orbitals each contribute one bond. Therefore, in the standard JEE/NEET MO treatment, C₂ has bond order 2 made up of two π bonds and no net σ bond."},
+ N2:{label:"N₂",e:10,order:"lowZ",bondCharacter:"1 σ + 2 π",note:"N₂ has bond order 3: one σ2p bond plus two π2p bonds. In the B₂/C₂/N₂ ordering, π2p lies below σ2p because s–p mixing is significant."},
+ N2p:{label:"N₂⁺",e:9,order:"lowZ",bondCharacter:"2 π + 0.5 σ",note:"Removing one electron from N₂ removes it from σ2p, decreasing bond order from 3 to 2.5 and creating one unpaired electron."},
+ O2:{label:"O₂",e:12,order:"highZ",bondCharacter:"1 σ + net 1 π",note:"O₂ has two unpaired electrons in separate π*2p orbitals. MOT therefore explains its observed paramagnetism."},
+ O2p:{label:"O₂⁺",e:11,order:"highZ",bondCharacter:"Bond order 2.5",note:"O₂⁺ has one electron removed from π*2p, so bond order increases from 2 to 2.5."},
+ O2m:{label:"O₂⁻",e:13,order:"highZ",bondCharacter:"Bond order 1.5",note:"O₂⁻ has one extra electron in π*2p. Bond order decreases to 1.5 and one unpaired electron remains."},
+ O2mm:{label:"O₂²⁻",e:14,order:"highZ",bondCharacter:"1 σ",note:"O₂²⁻ has both π*2p orbitals fully filled. Bond order = 1 and all electrons are paired."},
+ F2:{label:"F₂",e:14,order:"highZ",bondCharacter:"1 σ",note:"F₂ has bond order 1 and all electrons paired, so it is diamagnetic."},
+ Ne2:{label:"Ne₂",e:16,order:"highZ",bondCharacter:"No net bond",note:"For Ne₂, bonding and antibonding electrons are equal. Bond order = 0, so a normal stable Ne₂ molecule is not expected."}
 };
 
 function levelsFor(order){
@@ -301,6 +302,7 @@ function render(){
  root.getElementById("nb").textContent=calc.nb;
  root.getElementById("na").textContent=calc.na;
  root.getElementById("bo").textContent=calc.bo.toFixed(1).replace(".0","");
+ root.getElementById("bondCharacter").textContent=d.bondCharacter||"—";
  root.getElementById("unpaired").textContent=calc.unpaired;
  const mag=calc.unpaired>0?"Paramagnetic":"Diamagnetic";
  root.getElementById("magnetic").textContent=mag;
