@@ -84,6 +84,12 @@ canvas{width:100%;height:100%;display:block}
     width:max-content !important;
   }
 }
+
+.searchbox{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #29415c}
+.searchrow{display:flex;gap:7px}
+.searchrow input{min-width:0;flex:1;background:#08131f;color:#fff;border:1px solid #35516f;border-radius:10px;padding:10px;font:inherit}
+.searchrow button{background:#123857;color:#fff;border:1px solid #4f8fbd;border-radius:10px;padding:9px 11px;font-weight:700;cursor:pointer}
+.searchmsg{font-size:11px;line-height:1.4;color:#9fb1c4;margin-top:7px;min-height:15px}
 </style>
 </head>
 <body>
@@ -95,6 +101,17 @@ canvas{width:100%;height:100%;display:block}
 
 <div class="grid">
 <aside class="panel">
+
+<div class="searchbox">
+<label for="moleculeSearch">Type a molecule / ion</label>
+<div class="searchrow">
+<input id="moleculeSearch" list="moleculeList" placeholder="e.g. XeF4, SF4, NH3">
+<datalist id="moleculeList"></datalist>
+<button id="findMolecule" type="button">Find</button>
+</div>
+<div id="searchMsg" class="searchmsg">Search our growing JEE/NEET VSEPR database.</div>
+</div>
+
 <label>Electronic geometry</label>
 <select id="eg">
 <option value="sp">sp — Linear</option>
@@ -188,6 +205,37 @@ sp3d3:{sn:7,pts:pbp,d:[
 ['AX₅E₂','Pentagonal planar (idealized)','72°, 144°',[5,6],'With two lone pairs occupying the two axial sites, five bonded atoms remain in one pentagonal plane.','In the idealized PBP model, the two lone pairs are placed AXIALLY, 180° apart.','Idealized AX₅E₂ case']
 ]}
 };
+
+
+const MOLECULES={
+"BECL2":["sp",0,"BeCl₂"],"CO2":["sp",0,"CO₂"],"HCN":["sp",0,"HCN"],"NO2+":["sp",0,"NO₂⁺"],
+"BF3":["sp2",0,"BF₃"],"BCL3":["sp2",0,"BCl₃"],"SO3":["sp2",0,"SO₃"],"NO3-":["sp2",0,"NO₃⁻"],"CO3^2-":["sp2",0,"CO₃²⁻"],"CO3-2":["sp2",0,"CO₃²⁻"],
+"SO2":["sp2",1,"SO₂"],"NO2-":["sp2",1,"NO₂⁻"],"O3":["sp2",1,"O₃"],
+"CH4":["sp3",0,"CH₄"],"NH4+":["sp3",0,"NH₄⁺"],"BF4-":["sp3",0,"BF₄⁻"],"SO4^2-":["sp3",0,"SO₄²⁻"],"SO4-2":["sp3",0,"SO₄²⁻"],"CLO4-":["sp3",0,"ClO₄⁻"],
+"NH3":["sp3",1,"NH₃"],"PCL3":["sp3",1,"PCl₃"],"H3O+":["sp3",1,"H₃O⁺"],
+"H2O":["sp3",2,"H₂O"],"OF2":["sp3",2,"OF₂"],"SCL2":["sp3",2,"SCl₂"],
+"PCL5":["sp3d",0,"PCl₅"],"PF5":["sp3d",0,"PF₅"],
+"SF4":["sp3d",1,"SF₄"],"SEF4":["sp3d",1,"SeF₄"],
+"CLF3":["sp3d",2,"ClF₃"],"BRF3":["sp3d",2,"BrF₃"],
+"XEF2":["sp3d",3,"XeF₂"],"I3-":["sp3d",3,"I₃⁻"],"ICL2-":["sp3d",3,"ICl₂⁻"],
+"SF6":["sp3d2",0,"SF₆"],"PF6-":["sp3d2",0,"PF₆⁻"],
+"BRF5":["sp3d2",1,"BrF₅"],"IF5":["sp3d2",1,"IF₅"],
+"XEF4":["sp3d2",2,"XeF₄"],"ICL4-":["sp3d2",2,"ICl₄⁻"],"BRF4-":["sp3d2",2,"BrF₄⁻"],
+"IF7":["sp3d3",0,"IF₇"],"XEF6":["sp3d3",1,"XeF₆"],
+"SOF2":["sp3",1,"SOF₂"],"XEO4":["sp3",0,"XeO₄"],"PCL4+":["sp3",0,"PCl₄⁺"],
+"BRO3-":["sp3",1,"BrO₃⁻"],"XEF5-":["sp3d3",2,"XeF₅⁻"],"NH2-":["sp3",2,"NH₂⁻"],
+"XEF3+":["sp3d",2,"XeF₃⁺"],"I3+":["sp3",2,"I₃⁺"],"N3-":["sp",0,"N₃⁻"],
+"CLF7":["sp3d3",0,"ClF₇"],"ICL2+":["sp3",2,"ICl₂⁺"],"PCL6-":["sp3d2",0,"PCl₆⁻"],
+"PBR4+":["sp3",0,"PBr₄⁺"],"XEF5+":["sp3d2",1,"XeF₅⁺"],"CLO2+":["sp2",1,"ClO₂⁺"],
+"XEO2F2":["sp3d",1,"XeO₂F₂"],"XEO3F2":["sp3d",0,"XeO₃F₂"],"XEOF4":["sp3d2",1,"XeOF₄"],
+"XEO3":["sp3",1,"XeO₃"],"NH2+":["sp2",1,"NH₂⁺"],"BRF2+":["sp3",2,"BrF₂⁺"],
+"SNF3":["sp3",0,"SNF₃"],"TEBR6^2-":["sp3d3",1,"TeBr₆²⁻"],"TEBR6-2":["sp3d3",1,"TeBr₆²⁻"],
+"TEBR62-":["sp3d3",1,"TeBr₆²⁻"],"CO32-":["sp2",0,"CO₃²⁻"],"SO42-":["sp3",0,"SO₄²⁻"]
+};
+function normFormula(s){
+ return s.trim().toUpperCase().replace(/\s+/g,"").replace(/[()]/g,"").replace(/\^/g,"").replace(/[₀₁₂₃₄₅₆₇₈₉]/g,m=>"₀₁₂₃₄₅₆₇₈₉".indexOf(m))
+ .replace(/⁺/g,"+").replace(/⁻/g,"-").replace(/²/g,"2").replace(/³/g,"3");
+}
 
 const $=id=>document.getElementById(id);
 const eg=$('eg'),lp=$('lp'),formula=$('formula'),shape=$('shape'),angle=$('angle'),
@@ -339,6 +387,37 @@ wrap.addEventListener('wheel',e=>{
   zoom=Math.max(3.6,Math.min(8.5,zoom+e.deltaY*.005));
   camera.position.z=zoom
 },{passive:false});
+
+
+const SPECIAL_NOTES={
+ "CLF7":"ClF₇ is an uncommon/formal VSEPR example; IF₇ is the standard stable AX₇ example used in most courses.",
+ "TEBR62-":"[TeBr₆]²⁻ is a special case: experimentally the six Te–Br bonds are commonly treated as octahedral, while the Te(II) lone pair can be stereochemically inactive. Do not force the simple AX₆E model as an exact real structure.",
+ "XEF6":"XeF₆ is AX₆E in simple electron-domain counting, but its real geometry is distorted/non-ideal."
+};
+const moleculeSearch=$('moleculeSearch'), moleculeList=$('moleculeList'), searchMsg=$('searchMsg');
+Object.values(MOLECULES).forEach(v=>{
+ const o=document.createElement('option');o.value=v[2];moleculeList.appendChild(o)
+});
+function findMolecule(){
+ const raw=moleculeSearch.value;
+ let key=normFormula(raw);
+ let hit=MOLECULES[key];
+ if(!hit){
+   // also match the display formula after normalization
+   hit=Object.values(MOLECULES).find(v=>normFormula(v[2])===key);
+ }
+ if(!hit){
+   searchMsg.textContent='Not in the database yet. The manual hybridisation/lone-pair controls still work; this species can be added later.';
+   return;
+ }
+ E=hit[0];L=hit[1];eg.value=E;ui();build();
+ example.textContent=hit[2];
+ const normalizedKey=normFormula(raw);
+ const warn=SPECIAL_NOTES[normalizedKey]||'';
+ searchMsg.textContent=hit[2]+' loaded → '+E.replace('sp2','sp²').replace('sp3d3','sp³d³').replace('sp3d2','sp³d²').replace('sp3d','sp³d').replace('sp3','sp³')+', '+L+' lone pair'+(L===1?'':'s')+' on the central atom.'+(warn?' '+warn:'');
+}
+$('findMolecule').addEventListener('click',findMolecule);
+moleculeSearch.addEventListener('keydown',e=>{if(e.key==='Enter')findMolecule()});
 
 eg.onchange=()=>{
   E=eg.value;
