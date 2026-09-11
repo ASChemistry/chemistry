@@ -61,6 +61,19 @@ select{
     width:max-content !important;
   }
 }
+
+/* Compact laptop layout */
+@media (min-width:901px){
+  .wrap{width:min(1380px,97vw);padding:8px 0 14px}
+  header{margin-bottom:8px}
+  header h1{font-size:clamp(24px,2.3vw,34px);margin-bottom:3px}
+  header p{margin:3px 0;font-size:12px}
+  .grid{grid-template-columns:220px minmax(520px,1fr) 235px;gap:10px}
+  .panel{padding:11px}
+  #viewer{height:calc(100vh - 165px);min-height:470px;max-height:650px}
+  .card{padding:9px;margin-top:7px}
+  label{margin-top:7px}
+}
 </style>
 </head>
 <body>
